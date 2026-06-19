@@ -8,12 +8,30 @@ import urllib3
 import unicodedata
 import re
 import smtplib
+import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from requests.adapters import HTTPAdapter
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# ====== SSL FIX: bypass DH_KEY_TOO_SMALL cho muasamcong.mpi.gov.vn ======
+class LegacySSLAdapter(HTTPAdapter):
+    """Cho phép kết nối tới server dùng DH key yếu (legacy SSL)."""
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = ssl.create_default_context()
+        ctx.set_ciphers("DEFAULT:@SECLEVEL=1")
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs['ssl_context'] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+def make_session():
+    s = requests.Session()
+    s.mount("https://", LegacySSLAdapter())
+    return s
 
 # ====== CẤU HÌNH EMAIL ======
 try:
@@ -131,12 +149,13 @@ def fetch_keyword_raw(keyword, total_pages, log_func=None):
         if log_func: log_func(m)
 
     all_data = []
+    session  = make_session()
     for page in range(total_pages):
         log(f"  📄 [{keyword}] Trang {page+1}/{total_pages}...")
         payload[0]["pageNumber"] = page
         try:
-            r = requests.post(url, headers=headers, cookies=cookies,
-                              json=payload, verify=False, timeout=30)
+            r = session.post(url, headers=headers, cookies=cookies,
+                             json=payload, verify=False, timeout=30)
             if r.status_code == 200:
                 d = process_data_for_excel(r.json())
                 if not d:
