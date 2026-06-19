@@ -268,14 +268,14 @@ total_pages = st.number_input(
 
 # ── Chế độ lưu file ────────────────────────────────────────────────────
 save_mode_label = st.radio("Chế độ lưu file", [
+    "Gộp vào 1 file – tất cả vào 1 sheet (có cột 'tu_khoa')",
     "Mỗi từ khóa → 1 file Excel riêng (tải về từng file)",
     "Gộp vào 1 file – mỗi từ khóa = 1 sheet riêng",
-    "Gộp vào 1 file – tất cả vào 1 sheet (có cột 'tu_khoa')",
 ])
 save_mode_val = {
+    "Gộp vào 1 file – tất cả vào 1 sheet (có cột 'tu_khoa')": MODE_ONESHEET,
     "Mỗi từ khóa → 1 file Excel riêng (tải về từng file)": MODE_SEPARATE,
     "Gộp vào 1 file – mỗi từ khóa = 1 sheet riêng": MODE_MULTISHEET,
-    "Gộp vào 1 file – tất cả vào 1 sheet (có cột 'tu_khoa')": MODE_ONESHEET,
 }[save_mode_label]
 
 # ── Người nhận email ───────────────────────────────────────────────────
